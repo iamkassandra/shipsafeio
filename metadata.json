@@ -1,0 +1,6 @@
+{
+  "name": "ShipSafe AI",
+  "description": "An AI-driven development guardrail bridging the gap between AI coding agents and reality, offering solo and commercial safety checks, verification and premium direct downloads.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

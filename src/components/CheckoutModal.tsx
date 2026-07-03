@@ -2,15 +2,22 @@ import React, { useState } from "react";
 import { X, CreditCard, Lock, Download, CheckCircle, AlertCircle } from "lucide-react";
 import { Plan } from "../types";
 import { motion } from "motion/react";
+import { loadStripe } from "@stripe/stripe-js";
+
+const publishableKey = (import.meta as any).env.VITE_STRIPE_PUBLISHABLE_KEY || "pk_live_51Suz4dLAIJwl3rVahaVEyHBmfRnyY2Lj0AE52VMbscnpghnUCyQV9MWlX15KCOgxbTOuqEl8C5tb0nSWhnGThgtD00W7UauzR9";
+const stripePromise = loadStripe(publishableKey);
+const isLiveMode = publishableKey.startsWith("pk_live");
 
 interface CheckoutModalProps {
   plan: Plan;
   onClose: () => void;
+  currentUser?: any;
+  onPaymentSuccess?: (updatedUser: any) => void;
 }
 
-export default function CheckoutModal({ plan, onClose }: CheckoutModalProps) {
-  const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
+export default function CheckoutModal({ plan, onClose, currentUser, onPaymentSuccess }: CheckoutModalProps) {
+  const [email, setEmail] = useState(currentUser?.email || "");
+  const [name, setName] = useState(currentUser?.name || "");
   const [cardNumber, setCardNumber] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCVC, setCardCVC] = useState("");
@@ -42,14 +49,14 @@ export default function CheckoutModal({ plan, onClose }: CheckoutModalProps) {
     setErrorMsg(null);
 
     if (!acceptLiability) {
-      setErrorMsg("You must accept the minimal liability checking terms to checkout.");
+      setErrorMsg("You must accept the Terms of Service and Privacy Policy to checkout.");
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      // 1. Create checkout session
+      // 1. Create checkout session on backend
       const resCheckout = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -61,22 +68,97 @@ export default function CheckoutModal({ plan, onClose }: CheckoutModalProps) {
         throw new Error(dataCheckout.error || "Failed to create checkout session.");
       }
 
-      // 2. Submit payment (Simulate Stripe gateway notification)
+      let verificationBody: any = {
+        txId: dataCheckout.txId,
+        plan: plan.id,
+        email,
+        name,
+      };
+
+      if (dataCheckout.isRealStripe && dataCheckout.clientSecret) {
+        // Real Stripe payment flow using PaymentIntent client secret!
+        const stripe = await stripePromise;
+        if (!stripe) {
+          throw new Error("Stripe.js failed to load. Please verify your Stripe publishable key.");
+        }
+
+        // Parse Expiry Date (MM/YY or MM/YYYY)
+        const expiryParts = cardExpiry.split("/");
+        const expMonth = parseInt(expiryParts[0]?.trim(), 10);
+        let expYear = parseInt(expiryParts[1]?.trim(), 10);
+
+        if (isNaN(expMonth) || isNaN(expYear) || expMonth < 1 || expMonth > 12) {
+          throw new Error("Invalid card expiration date. Please use MM/YY format.");
+        }
+
+        // Convert 2-digit year to 4-digit year
+        if (expYear < 100) {
+          expYear += 2000;
+        }
+
+        // Confirm the payment with Stripe!
+        const { paymentIntent, error } = await stripe.confirmCardPayment(dataCheckout.clientSecret, {
+          payment_method: {
+            card: {
+              number: cardNumber.replace(/\s/g, ""),
+              exp_month: expMonth,
+              exp_year: expYear,
+              cvc: cardCVC,
+            },
+            billing_details: {
+              name: name,
+              email: email,
+            },
+          },
+        } as any);
+
+        if (error) {
+          throw new Error(error.message || "Stripe was unable to authorize the transaction.");
+        }
+
+        if (!paymentIntent || paymentIntent.status !== "succeeded") {
+          throw new Error(`Payment failed with status: ${paymentIntent?.status || "unknown"}`);
+        }
+
+        verificationBody.isRealStripe = true;
+        verificationBody.paymentIntentId = paymentIntent.id;
+      } else {
+        // Fallback simulated payment flow
+        verificationBody.isRealStripe = false;
+        verificationBody.cardNumber = cardNumber;
+        verificationBody.cardExpiry = cardExpiry;
+        verificationBody.cardCVC = cardCVC;
+      }
+
+      // 2. Submit payment verification to backend
       const resVerify = await fetch("/api/verify-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          txId: dataCheckout.txId,
-          cardNumber,
-          cardExpiry,
-          cardCVC,
-          plan: plan.id
-        }),
+        body: JSON.stringify(verificationBody),
       });
 
       const dataVerify = await resVerify.json();
       if (!resVerify.ok) {
         throw new Error(dataVerify.error || "Payment verification failed.");
+      }
+
+      // If user is logged in, or we auto-created their account, let's update client state
+      if (onPaymentSuccess) {
+        const updatedPlans = currentUser ? [...(currentUser.purchasedPlans || [])] : [];
+        if (!updatedPlans.includes(plan.id)) {
+          updatedPlans.push(plan.id);
+        }
+        
+        const updatedKeys = currentUser ? { ...(currentUser.licenseKeys || {}) } : {};
+        updatedKeys[plan.id] = dataVerify.licenseKey;
+
+        onPaymentSuccess({
+          email: currentUser?.email || email.toLowerCase(),
+          name: currentUser?.name || name,
+          isAdmin: currentUser?.isAdmin || email.toLowerCase().endsWith("@shipsafe.ai"),
+          purchasedPlans: updatedPlans,
+          licenseKeys: updatedKeys
+        });
       }
 
       // Success!
@@ -166,12 +248,25 @@ export default function CheckoutModal({ plan, onClose }: CheckoutModalProps) {
                 />
               </div>
 
-              {/* Simulated Card Block */}
+              {/* Simulated / Real Card Block */}
               <div className="border border-brand-gray rounded-2xl p-4 bg-brand-light/30 space-y-3">
-                <div className="flex items-center gap-1.5 text-brand-dark/60">
-                  <CreditCard className="w-4 h-4 text-brand-blue" />
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider">
-                    SIMULATED STRIPE CARD
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-1.5 text-brand-dark/60">
+                    <CreditCard className="w-4 h-4 text-brand-blue" />
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider">
+                      {isLiveMode ? "SECURE STRIPE LIVE GATEWAY" : "SIMULATED STRIPE GATEWAY"}
+                    </span>
+                  </div>
+                  <span className="text-[9px] text-brand-dark/50 font-mono">
+                    {isLiveMode ? (
+                      <>
+                        * Fully encrypted checkout. Sensitive credit details are tokenized securely on Stripe's PCI-compliant servers.
+                      </>
+                    ) : (
+                      <>
+                        * Use test card <strong className="text-brand-blue font-mono font-bold">4242 4242 4242 4242</strong> to succeed. Any other card simulates a decline.
+                      </>
+                    )}
                   </span>
                 </div>
 
@@ -232,7 +327,7 @@ export default function CheckoutModal({ plan, onClose }: CheckoutModalProps) {
                   className="mt-1 accent-brand-blue shrink-0 w-4 h-4 cursor-pointer"
                 />
                 <span className="text-[11px] text-brand-dark/85 leading-relaxed">
-                  I accept and acknowledge the <strong>0% liability policy</strong>. I agree that ShipSafe is a pre-deployment guardrail and holds 0% liability for any codebase security errors, vulnerabilities, or exploits published to production.
+                  I agree to the <strong>Terms of Service</strong> and <strong>Privacy Policy</strong>. I acknowledge that ShipSafe is provided as-is to identify potential security exposures in my codebase.
                 </span>
               </label>
             </div>
@@ -272,8 +367,13 @@ export default function CheckoutModal({ plan, onClose }: CheckoutModalProps) {
               <p className="text-sm text-brand-dark/60 mt-1.5">
                 Thank you for purchasing ShipSafe AI {plan.name}!
               </p>
+              <div className="bg-blue-50/50 border border-brand-blue/10 rounded-2xl p-3.5 my-3 text-xs text-brand-dark/80 font-mono leading-relaxed text-center">
+                📬 We have successfully dispatched a secure email to:
+                <div className="font-bold text-brand-blue mt-1 break-all">{email}</div>
+                <div className="text-[10px] text-brand-dark/50 mt-1">It contains your official license key and a permanent link to download your package.</div>
+              </div>
               <p className="text-xs text-brand-blue font-mono mt-1">
-                Your direct download is starting automatically.
+                Your direct browser download has been initiated automatically.
               </p>
             </div>
 

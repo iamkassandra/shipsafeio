@@ -106,26 +106,14 @@ export default function PlanCard({ plan, onSelectPlan, onExplorePlan }: PlanCard
       <div className="space-y-3 mt-8">
         <button
           onClick={() => onSelectPlan(plan)}
-          className={`w-full font-bold text-xs py-3.5 px-4 rounded-xl shadow-md transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer transform hover:scale-[1.01] active:scale-[0.99] ${
+          className={`w-full font-bold text-xs py-4 px-4 rounded-xl shadow-md transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer transform hover:scale-[1.01] active:scale-[0.99] uppercase font-mono tracking-wider ${
             isCommercial
               ? "bg-brand-blue hover:bg-[#0582aa] text-white shadow-brand-blue/20"
               : "bg-brand-dark hover:bg-brand-dark/95 text-white"
           }`}
         >
           <Shield className="w-4 h-4" />
-          Acquire {plan.name} License
-        </button>
-
-        <button
-          onClick={() => onExplorePlan(plan.id)}
-          className={`w-full font-semibold text-xs py-2.5 px-4 rounded-xl border transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer ${
-            isCommercial
-              ? "border-white/10 hover:border-white/25 hover:bg-white/5 text-white"
-              : "border-brand-gray hover:bg-brand-light text-brand-dark/80"
-          }`}
-        >
-          <span>Explore Plan Details</span>
-          <ArrowRight className="w-3.5 h-3.5" />
+          Buy Now
         </button>
       </div>
     </motion.div>

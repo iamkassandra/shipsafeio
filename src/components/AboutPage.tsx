@@ -5,11 +5,34 @@ import { motion } from "motion/react";
 export default function AboutPage() {
   const [formData, setFormData] = useState({ name: "", email: "", subject: "", message: "" });
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitted(true);
-    setFormData({ name: "", email: "", subject: "", message: "" });
+    setIsSubmitting(true);
+    setErrorMsg(null);
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to submit inquiry.");
+      }
+
+      setIsSubmitted(true);
+      setFormData({ name: "", email: "", subject: "", message: "" });
+    } catch (err: any) {
+      console.error(err);
+      setErrorMsg(err.message || "An error occurred. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -133,6 +156,12 @@ export default function AboutPage() {
                 </p>
               </div>
 
+              {errorMsg && (
+                <div className="bg-red-50 text-red-700 text-xs p-3 rounded-xl flex items-center gap-2 border border-red-100">
+                  <span className="font-semibold">{errorMsg}</span>
+                </div>
+              )}
+
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-[10px] font-bold text-brand-dark/70 block mb-1 uppercase font-mono">
@@ -192,9 +221,19 @@ export default function AboutPage() {
 
               <button
                 type="submit"
-                className="bg-brand-blue hover:bg-[#0582aa] text-white font-semibold text-xs rounded-xl px-5 py-3 transition-colors flex items-center gap-1.5 shadow-md shadow-brand-blue/15 cursor-pointer"
+                disabled={isSubmitting}
+                className="bg-brand-blue hover:bg-[#0582aa] disabled:bg-brand-gray text-white font-semibold text-xs rounded-xl px-5 py-3 transition-colors flex items-center gap-1.5 shadow-md shadow-brand-blue/15 cursor-pointer"
               >
-                <Send className="w-3.5 h-3.5" /> Submit Support Query
+                {isSubmitting ? (
+                  <>
+                    <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                    Sending query...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-3.5 h-3.5" /> Submit Support Query
+                  </>
+                )}
               </button>
             </form>
           )}

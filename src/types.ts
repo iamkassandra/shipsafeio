@@ -1,4 +1,4 @@
-export type PageView = "home" | "solo" | "commercial" | "docs" | "about";
+export type PageView = "home" | "solo" | "commercial" | "docs" | "about" | "dashboard" | "crm";
 
 export interface Plan {
   id: "solo" | "commercial";
@@ -15,6 +15,7 @@ export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
+  citations?: { title: string; uri: string }[];
 }
 
 export interface CheckoutSession {

@@ -15,12 +15,12 @@ export default function Footer() {
   };
 
   const socials = [
-    { name: "Facebook", href: "https://facebook.com" },
-    { name: "Instagram", href: "https://instagram.com" },
-    { name: "X", href: "https://x.com" },
-    { name: "Reddit", href: "https://reddit.com" },
-    { name: "Discord", href: "https://discord.gg" },
-    { name: "LinkedIn", href: "https://linkedin.com" },
+    { name: "Facebook", href: "https://www.facebook.com/people/Shipsafe-Ai/pfbid027bhhN68McTaRpb6aaB2MjwzxG1XfNWWQhTHNMfgxnsNyuWEo8JdjoMCdnah1mtgul/" },
+    { name: "Instagram", href: "https://www.instagram.com/shipsafeai.xyz/" },
+    { name: "X", href: "https://x.com/SHIPSAFEAixyz" },
+    { name: "Reddit", href: "https://www.reddit.com/user/shipsafeai" },
+    { name: "Discord", href: "https://discord.gg/wDA4NnU67" },
+    { name: "LinkedIn (Coming Soon)", href: "#" },
   ];
 
   return (
@@ -29,8 +29,8 @@ export default function Footer() {
         {/* Upper Column Block: Newsletter & Description */}
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div className="space-y-4">
-            <h4 className="text-xl font-shipsafe text-brand-dark tracking-wide">
-              JOIN THE <span className="text-brand-blue">DEVELOPER INTAKE</span>
+            <h4 className="text-xl font-shipsafe text-brand-dark tracking-wide uppercase">
+              JOIN OUR <span className="text-brand-blue">MAILING LIST</span>
             </h4>
             <p className="text-xs text-brand-dark/60 leading-relaxed max-w-md">
               Receive updates on pre-deployment security scan releases, local guardrail updates, and circular reference solving tools built by the ShipSafe Labs team.
@@ -52,7 +52,7 @@ export default function Footer() {
                   <input
                     type="email"
                     required
-                    placeholder="Enter your developer email..."
+                    placeholder="Enter your email..."
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="flex-1 text-xs border border-brand-gray rounded-xl px-3.5 py-2 bg-white focus:outline-none focus:border-brand-blue font-mono"
@@ -75,18 +75,26 @@ export default function Footer() {
             CONNECT WITH THE FOUNDATION
           </span>
           <div className="bg-brand-blue rounded-full px-5 py-3 shadow-xl shadow-brand-blue/15 flex flex-wrap justify-center items-center gap-x-6 gap-y-2 max-w-full">
-            {socials.map((s, idx) => (
-              <a
-                key={idx}
-                href={s.href}
-                target="_blank"
-                rel="noreferrer"
-                referrerPolicy="no-referrer"
-                className="text-xs font-mono font-semibold text-white/90 hover:text-white hover:underline transition-all"
-              >
-                {s.name}
-              </a>
-            ))}
+            {socials.map((s, idx) => {
+              const isComingSoon = s.href === "#";
+              return (
+                <a
+                  key={idx}
+                  href={s.href}
+                  target={isComingSoon ? undefined : "_blank"}
+                  rel={isComingSoon ? undefined : "noreferrer"}
+                  referrerPolicy={isComingSoon ? undefined : "no-referrer"}
+                  className={`text-xs font-mono font-semibold transition-all ${
+                    isComingSoon
+                      ? "text-white/40 cursor-not-allowed select-none"
+                      : "text-white/90 hover:text-white hover:underline hover:scale-105"
+                  }`}
+                  onClick={isComingSoon ? (e) => e.preventDefault() : undefined}
+                >
+                  {s.name}
+                </a>
+              );
+            })}
           </div>
         </div>
 
@@ -105,8 +113,8 @@ export default function Footer() {
       </div>
 
       {/* Giant VERIFICATION Display typography peaking from the bottom (Matching Screenshot) */}
-      <div className="relative mt-12 bg-brand-light pt-8 pb-10 border-t border-brand-gray/50 flex flex-col items-center justify-center select-none overflow-hidden">
-        <h2 className="text-[14vw] font-serif font-black text-brand-blue/15 leading-none tracking-tight transform scale-x-[1.1] select-none translate-y-3 text-center uppercase font-bodoni">
+      <div className="relative mt-12 bg-brand-light pt-8 pb-10 border-t border-brand-gray/50 flex flex-col items-center justify-center select-none overflow-hidden w-full max-w-full">
+        <h2 className="text-[10vw] font-serif font-black text-brand-blue/15 leading-none tracking-wider text-center uppercase font-bodoni select-none translate-y-3">
           VERIFICATION
         </h2>
         <div className="absolute bottom-6 text-center">

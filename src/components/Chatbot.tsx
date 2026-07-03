@@ -65,6 +65,7 @@ export default function Chatbot() {
           role: "assistant",
           content: data.content,
           timestamp: new Date(),
+          citations: data.citations,
         }
       ]);
     } catch (err: any) {
@@ -77,7 +78,7 @@ export default function Chatbot() {
 
   const samplePrompts = [
     "Solo vs Commercial plans?",
-    "What is the liability policy?",
+    "What are the licensing terms?",
     "How does local scanning work?"
   ];
 
@@ -136,6 +137,26 @@ export default function Chatbot() {
                     }`}
                   >
                     <p className="whitespace-pre-wrap">{m.content}</p>
+
+                    {m.citations && m.citations.length > 0 && (
+                      <div className="mt-2.5 pt-2 border-t border-brand-gray space-y-1">
+                        <span className="text-[9px] font-bold text-brand-dark/40 font-mono block uppercase">Sources & Citations:</span>
+                        <div className="flex flex-wrap gap-1">
+                          {m.citations.map((cit, citIdx) => (
+                            <a
+                              key={citIdx}
+                              href={cit.uri}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 bg-brand-blue/5 hover:bg-brand-blue/10 border border-brand-blue/15 text-[9px] font-mono text-brand-blue px-1.5 py-0.5 rounded transition-all"
+                            >
+                              [{citIdx + 1}] {cit.title || "Reference"}
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     <span
                       className={`text-[9px] block mt-1 text-right font-mono ${
                         m.role === "user" ? "text-white/75" : "text-brand-dark/40"

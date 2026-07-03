@@ -16,7 +16,7 @@ export default function PlanDetailPage({ plan, onBack, onSelectPlan }: PlanDetai
     { name: "Local Credentials Scanning", solo: true, commercial: true },
     { name: "Pre-commit Hook Integrations", solo: true, commercial: true },
     { name: "Multi-file High-speed Traversal", solo: false, commercial: true },
-    { name: "Circular Dependency Resolution", solo: false, commercial: true },
+    { name: "Workspace Vulnerability Scanning", solo: false, commercial: true },
     { name: "CI/CD Pipeline Integration Guides", solo: false, commercial: true },
     { name: "Priority Support Level", solo: "Standard Email", commercial: "24/7 Priority Support" },
     { name: "Commercial Distribution Rights", solo: false, commercial: true },
@@ -82,7 +82,7 @@ export default function PlanDetailPage({ plan, onBack, onSelectPlan }: PlanDetai
             onClick={() => onSelectPlan(plan)}
             className="w-full bg-brand-blue hover:bg-[#0582aa] text-white font-bold text-xs py-3 rounded-xl transition-colors shadow-lg shadow-brand-blue/15 cursor-pointer"
           >
-            Aquire {plan.name} License
+            Acquire {plan.name} License
           </button>
         </div>
       </div>
@@ -131,10 +131,10 @@ export default function PlanDetailPage({ plan, onBack, onSelectPlan }: PlanDetai
 
           <div className="bg-white/5 border border-white/10 p-4 rounded-2xl space-y-1 text-xs">
             <div className="flex items-center gap-1 text-brand-blue font-bold uppercase text-[9px] font-mono">
-              <Info className="w-3.5 h-3.5" /> Zero Liability Commitment
+              <Info className="w-3.5 h-3.5" /> Secure Sandboxed Execution
             </div>
             <p className="text-[10px] text-white/70 leading-relaxed">
-              We certify that 100% of the scanner operates within your offline sandbox workspace. You assume full operational compliance upon verifying execution parameters.
+              We certify that 100% of the scanner operates within your offline sandbox workspace. No proprietary source code leaves your local environment.
             </p>
           </div>
         </div>

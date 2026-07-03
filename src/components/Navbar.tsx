@@ -1,19 +1,19 @@
 import React from "react";
 import { PageView } from "../types";
-import { Sparkles, BookOpen, User, HelpCircle, ShieldAlert } from "lucide-react";
+import { Sparkles, BookOpen, User, HelpCircle, Shield, Database } from "lucide-react";
 
 interface NavbarProps {
   currentView: PageView;
   setView: (view: PageView) => void;
+  currentUser: any;
+  onOpenAuth: () => void;
 }
 
-export default function Navbar({ currentView, setView }: NavbarProps) {
+export default function Navbar({ currentView, setView, currentUser, onOpenAuth }: NavbarProps) {
   const navItems: { id: PageView; label: string; icon?: React.ReactNode }[] = [
-    { id: "home", label: "SHIPSAFE Ai" },
-    { id: "solo", label: "SOLO" },
-    { id: "commercial", label: "COMMERCIAL" },
+    { id: "home", label: "SHIPSAFE" },
     { id: "docs", label: "DOCS", icon: <BookOpen className="w-3.5 h-3.5" /> },
-    { id: "about", label: "ABOUT / CONTACT", icon: <HelpCircle className="w-3.5 h-3.5" /> },
+    { id: "about", label: "ABOUT", icon: <HelpCircle className="w-3.5 h-3.5" /> },
   ];
 
   return (
@@ -32,7 +32,7 @@ export default function Navbar({ currentView, setView }: NavbarProps) {
           </div>
 
           {/* Desktop Navigation Links */}
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-4">
             {navItems.map((item) => {
               if (item.id === "home") return null; // represented by logo
 
@@ -53,13 +53,51 @@ export default function Navbar({ currentView, setView }: NavbarProps) {
               );
             })}
 
+            {/* Admin CRM Tab (Dynamic based on admin role) */}
+            {currentUser?.isAdmin && (
+              <button
+                onClick={() => setView("crm")}
+                className={`text-xs font-mono tracking-wider font-semibold uppercase px-2.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                  currentView === "crm"
+                    ? "text-red-600 bg-red-50 border border-red-200"
+                    : "text-red-500/80 hover:text-red-600 hover:bg-red-50/50 border border-transparent"
+                }`}
+              >
+                <Database className="w-3.5 h-3.5" />
+                ADMIN CRM
+              </button>
+            )}
+
+            {/* User Dashboard / Portal access */}
+            {currentUser ? (
+              <button
+                onClick={() => setView("dashboard")}
+                className={`text-xs font-mono tracking-wider font-semibold uppercase px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                  currentView === "dashboard"
+                    ? "text-brand-blue bg-brand-blue/5 border border-brand-blue/15"
+                    : "text-brand-dark hover:bg-brand-light border border-transparent"
+                }`}
+              >
+                <User className="w-3.5 h-3.5 text-brand-blue" />
+                {currentUser.name}
+              </button>
+            ) : (
+              <button
+                onClick={onOpenAuth}
+                className="text-xs font-mono tracking-wider font-semibold uppercase px-3 py-1.5 rounded-lg text-brand-dark/70 hover:text-brand-blue hover:bg-brand-light cursor-pointer border border-brand-gray flex items-center gap-1.5"
+              >
+                <User className="w-3.5 h-3.5" />
+                Log In
+              </button>
+            )}
+
             {/* Support chat trigger */}
             <button
               onClick={() => {
                 const chatToggle = document.getElementById("chatbot-toggle-btn");
                 if (chatToggle) chatToggle.click();
               }}
-              className="bg-brand-blue hover:bg-[#0582aa] text-white px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase transition-all shadow-md shadow-brand-blue/15 flex items-center gap-1.5 cursor-pointer"
+              className="bg-brand-blue hover:bg-[#0582aa] text-white px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase transition-all shadow-md shadow-brand-blue/15 flex items-center gap-1.5 cursor-pointer ml-2"
             >
               <Sparkles className="w-3.5 h-3.5" />
               SSAi CHAT
@@ -74,11 +112,20 @@ export default function Navbar({ currentView, setView }: NavbarProps) {
               className="text-xs font-mono font-semibold uppercase border border-brand-gray bg-brand-light text-brand-dark px-3 py-1.5 rounded-xl outline-none focus:border-brand-blue"
             >
               <option value="home">Home / Hero</option>
-              <option value="solo">Solo Edition</option>
-              <option value="commercial">Commercial Edition</option>
               <option value="docs">Docs & Guides</option>
               <option value="about">About & Contact</option>
+              {currentUser && <option value="dashboard">Portal: {currentUser.name}</option>}
+              {currentUser?.isAdmin && <option value="crm">Admin CRM</option>}
             </select>
+
+            {!currentUser && (
+              <button
+                onClick={onOpenAuth}
+                className="bg-brand-light border border-brand-gray text-brand-dark p-2 rounded-xl"
+              >
+                <User className="w-4 h-4" />
+              </button>
+            )}
 
             <button
               onClick={() => {

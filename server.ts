@@ -299,7 +299,7 @@ Always answer concisely and maintain a helpful, futuristic vibe. If asked how to
     }
 
     if (!acceptLiability) {
-      res.status(400).json({ error: "You must accept the terms to proceed." });
+      res.status(400).json({ error: "You must accept the non/minimal liability clause to proceed." });
       return;
     }
 

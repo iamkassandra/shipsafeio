@@ -49,7 +49,7 @@ export default function CheckoutModal({ plan, onClose, currentUser, onPaymentSuc
     setErrorMsg(null);
 
     if (!acceptLiability) {
-      setErrorMsg("You must accept the Terms of Service and Privacy Policy to checkout.");
+      setErrorMsg("You must explicitly accept the non/minimal liability clause to complete your checkout.");
       return;
     }
 
@@ -327,7 +327,7 @@ export default function CheckoutModal({ plan, onClose, currentUser, onPaymentSuc
                   className="mt-1 accent-brand-blue shrink-0 w-4 h-4 cursor-pointer"
                 />
                 <span className="text-[11px] text-brand-dark/85 leading-relaxed">
-                  I agree to the <strong>Terms of Service</strong> and <strong>Privacy Policy</strong>. I acknowledge that ShipSafe is provided as-is to identify potential security exposures in my codebase.
+                  I explicitly accept and agree to the <strong>non/minimal liability clause</strong>. I acknowledge that ShipSafe is a pre-deployment scanning utility provided as-is, and the creators hold zero or minimal liability for any undetected secrets, exposure events, or security vulnerabilities in production.
                 </span>
               </label>
             </div>
